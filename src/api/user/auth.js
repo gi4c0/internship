@@ -1,8 +1,10 @@
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
-const { User } = require('../../models/index.js')
 const jwt = require('jsonwebtoken')
+
+const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
+
 const secret = 'secret'
 const saltRounds = 10
 
