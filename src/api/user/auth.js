@@ -2,9 +2,9 @@ const Joi = require('joi')
 const bcrypt = require('bcrypt')
 const { User } = require('../../models/index.js')
 const jwt = require('jsonwebtoken')
+const { wrapper } = require('../../utils/wrapper.js')
 const secret = 'secret'
 const saltRounds = 10
-const { wrapper } = require('../../utils/wrapper.js')
 
 exports.registerSchema = Joi.object().keys({
   email: Joi.string().email().required(),
