@@ -4,7 +4,7 @@ const { validate } = require('../middlewares/validator.js')
 const controller = require('./auth.js')
 
 router.post('/register', validate(controller.registerSchema), controller.register)
-router.post('/login', controller.login)
+router.post('/login', validate(controller.registerSchema), controller.login)
 // your routes here
 
 module.exports = router
