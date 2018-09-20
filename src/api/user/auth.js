@@ -1,10 +1,17 @@
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
-const { User } = require('../../models/index.js')
 const jwt = require('jsonwebtoken')
+
+const { User } = require('../../models/index.js')
+const { wrapper } = require('../../utils/wrapper.js')
+
 const secret = 'secret'
 const saltRounds = 10
-// const { wrapper } = require('../../utils/wrapper.js')
+
+exports.registerSchema = Joi.object().keys({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required()
+})
 
 exports.register = async (req, res, next) => {
   try {
@@ -20,21 +27,13 @@ exports.register = async (req, res, next) => {
 }
 
 // TODO Change "secret" on RSA key(see jsonwebtoken doc)
-exports.login = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ where: { email: req.body.email } })
-    const successCompare = await bcrypt.compare(req.body.password, user.password)
-    const token = await jwt.sign({ email: user.email }, secret)
-    if (successCompare) {
-      return res.json({ token: token })
-    }
-    return next({ httpCode: 401, message: "Password don't match" })
-  } catch (err) {
-    return next({ httpCode: 500, message: err })
-  }
-}
+exports.login = wrapper(async (req, res, next) => {
+  const user = await User.findOne({ where: { email: req.body.email } })
+  if (!user) return next({ httpCode: 404, message: 'No such user found' })
 
-exports.registerSchema = Joi.object().keys({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(8).required()
+  const successCompare = await bcrypt.compare(req.body.password, user.password)
+  if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
+
+  const token = await jwt.sign({ email: user.email }, secret)
+  res.json({ token: token })
 })

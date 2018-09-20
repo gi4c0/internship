@@ -6,6 +6,5 @@ exports.validate = schema => (req, res, next) => {
     const messages = result.error.details.map(d => d.message).join('. ')
     throw { httpCode: 400, message: messages }
   }
-
   next()
 }
