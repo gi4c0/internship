@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 
 exports.userFactory = sequelize => sequelize.define('User', {
-  email: { type: Sequelize.STRING, unique: true, allowNull: false },
+  email: { type: Sequelize.STRING, unique: true, allowNull: false, validate: { isEmail: true } },
   password: { type: Sequelize.STRING, allowNull: false },
   firstName: { type: Sequelize.STRING },
   lastName: { type: Sequelize.STRING },
