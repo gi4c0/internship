@@ -6,5 +6,5 @@ const controller = require('./auth.js')
 router.post('/register', validate(controller.registerSchema), controller.register)
 router.post('/login', validate(controller.loginSchema), controller.login)
 // your routes here
-
+router.get('/confirm-token', controller.confirm)
 module.exports = router

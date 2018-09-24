@@ -16,7 +16,8 @@ exports.userFactory = sequelize => sequelize.define('User', {
   city: { type: Sequelize.STRING },
   website: { type: Sequelize.STRING },
   address: { type: Sequelize.STRING },
-  state: { type: Sequelize.STRING }
+  state: { type: Sequelize.STRING },
+  isVerified: { type: Sequelize.BOOLEAN }
 }, {
   freezeTableName: true
 })

@@ -1,10 +1,12 @@
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const util = require('util')
 
+const jwtPromiseVer = util.promisify(jwt.verify)
 const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
-
+const { sendMail } = require('../../utils/mail')
 const secret = 'secret'
 const saltRounds = 10
 
@@ -34,6 +36,9 @@ exports.register = wrapper(async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
     await User.create({ ...req.body, password: hashedPassword })
+
+    const token = await jwt.sign({ email: req.body.email }, 'registration')
+    sendMail(token, req.body.email)
     res.sendStatus(201)
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
@@ -51,6 +56,18 @@ exports.login = wrapper(async (req, res, next) => {
   const successCompare = await bcrypt.compare(req.body.password, user.password)
   if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
 
-  const token = await jwt.sign({ email: user.email }, secret)
+  const token = await jwt.sign({ email: user.email }, secret, { expiresIn: '1d' })
+
+  if (!user.isVerified) return next({ httpCode: 401, message: 'Please confirm your email' })
   res.json({ token: token })
+})
+
+exports.confirm = wrapper(async (req, res, next) => {
+  await jwtPromiseVer(req.query.token, 'registration').then(async (result) => {
+    const user = await User.findOne({ where: { email: result.email } })
+    if (user.isVerified) { return next({ httpCode: 401, message: 'Already confirmed' }) }
+
+    user.update({ isVerified: true })
+    res.json('Success confirmed')
+  })
 })
