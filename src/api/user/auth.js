@@ -32,7 +32,7 @@ exports.loginSchema = Joi.object().keys({
   password: Joi.string().min(8).required()
 })
 
-exports.register = wrapper(async (req, res, next) => {
+exports.register = async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
     await User.create({ ...req.body, password: hashedPassword })
@@ -42,11 +42,11 @@ exports.register = wrapper(async (req, res, next) => {
     res.sendStatus(201)
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
-      throw { httpCode: 400, message: 'This email is already taken' }
+      return next({ httpCode: 400, message: 'This email is already taken' })
     }
     next(err)
   }
-})
+}
 
 // TODO Change "secret" on RSA key(see jsonwebtoken doc)
 exports.login = wrapper(async (req, res, next) => {
@@ -63,11 +63,10 @@ exports.login = wrapper(async (req, res, next) => {
 })
 
 exports.confirm = wrapper(async (req, res, next) => {
-  await jwtPromiseVer(req.query.token, 'registration').then(async (result) => {
-    const user = await User.findOne({ where: { email: result.email } })
-    if (user.isVerified) { return next({ httpCode: 401, message: 'Already confirmed' }) }
+  const result = await jwtPromiseVer(req.query.token, 'registration')
+  const user = await User.findOne({ where: { email: result.email } })
+  if (user.isVerified) { return next({ httpCode: 401, message: 'Already confirmed' }) }
 
-    user.update({ isVerified: true })
-    res.json('Success confirmed')
-  })
+  await user.update({ isVerified: true })
+  res.json('Success confirmed')
 })

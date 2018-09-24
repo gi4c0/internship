@@ -20,6 +20,5 @@ const mailOptions = {
 exports.sendMail = (token, email) => {
   const html = `<b>Hi ${email}</b><br><a href = http://localhost:3000/api/users/confirm-token?token=${token}>Ссыыыылка`
   transporter.sendMail({ ...mailOptions, html: html })
-    .then(console.log)
     .catch(console.log)
 }
