@@ -38,7 +38,7 @@ exports.register = async (req, res, next) => {
     await User.create({ ...req.body, password: hashedPassword })
 
     const token = await jwt.sign({ email: req.body.email }, 'registration')
-    sendMail(token, req.body.email)
+    sendMail(token, req.body.email, 'http://localhost:3000/api/users/confirm-token', 'Email confirmation')
     res.sendStatus(201)
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
@@ -69,4 +69,39 @@ exports.confirm = wrapper(async (req, res, next) => {
 
   await user.update({ isVerified: true })
   res.json('Success confirmed')
+})
+
+// TODO need to destroy previous JWT Token ------------------
+exports.changePassword = wrapper(async (req, res, next) => {
+  const result = await jwtPromiseVer(req.body.token, secret)
+  const user = await User.findOne({ where: { email: result.email } })
+  if (!user) return next({ httpCode: 404, message: 'No such user found' })
+
+  const successCompare = await bcrypt.compare(req.body.password, user.password)
+  if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
+
+  const hashedPassword = await bcrypt.hash(req.body.password_new, saltRounds)
+  await user.update({ password: hashedPassword })
+  res.json('Successfully changed!')
+})
+
+// TODO need to destroy previous JWT Token №2 ------------------
+exports.resetPassword = wrapper(async (req, res, next) => {
+  const result = await jwtPromiseVer(req.query.token, 'forgot_password')
+  const user = await User.findOne({ where: { email: result.email } })
+  if (!user) return next({ httpCode: 404, message: 'No such user found' })
+
+  const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
+  await user.update({ password: hashedPassword })
+  res.json('Success reset!')
+})
+
+exports.askForgotPassword = wrapper(async (req, res, next) => {
+  const user = await User.findOne({ where: { email: req.body.email } })
+  if (!user) return next({ httpCode: 404, message: 'No such user found' })
+
+  const token = await jwt.sign({ email: req.body.email }, 'forgot_password', { expiresIn: '5m' })
+  sendMail(token, req.body.email, 'http://localhost:3000/api/users/reset-password', 'Forgot Password')
+
+  res.json('Check your email')
 })
