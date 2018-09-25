@@ -30,5 +30,5 @@ exports.resetPasswordSchema = Joi.object().keys({
 exports.changePasswordSchema = Joi.object().keys({
   token: Joi.string().required(),
   password: Joi.string().min(8).required(),
-  password_new: Joi.string().min(8).required()
+  passwordNew: Joi.string().min(8).required()
 })

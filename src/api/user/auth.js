@@ -1,28 +1,30 @@
-
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const util = require('util')
+
+const config = require('config')
+const secret = config.get('secret')
+const secretForgotPass = config.get('secretForgotPass')
+const secretRegistration = config.get('secretRegistration')
+const saltRounds = 10
 
 const verifyJwt = util.promisify(jwt.verify)
 const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
 
-const secret = 'secret'
-const saltRounds = 10
-const config = require('config')
-const url = config.get('url')
+
 
 exports.register = async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
     await User.create({ ...req.body, password: hashedPassword })
 
-    const token = await jwt.sign({ email: req.body.email }, 'registration')
+    const token = await jwt.sign({ email: req.body.email }, secretRegistration)
     const mailBody = {
-      token: token,
+      token,
       email: req.body.email,
-      route: url + '/api/users/confirm-token',
+      route: '/api/users/confirm-token',
       subject: 'Email confirmation'
     }
     sendMail(mailBody)
@@ -46,16 +48,16 @@ exports.login = wrapper(async (req, res, next) => {
   const token = await jwt.sign({ email: user.email }, secret, { expiresIn: '1d' })
 
   if (!user.isVerified) return next({ httpCode: 401, message: 'Please confirm your email' })
-  res.json({ token: token })
+  res.json({ token })
 })
 
 exports.confirm = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.query.token, 'registration')
+  const result = await verifyJwt(req.query.token, secretRegistration)
   const user = await User.findOne({ where: { email: result.email } })
-  if (user.isVerified) { return next({ httpCode: 401, message: 'Already confirmed' }) }
+  if (user.isVerified) return next({ httpCode: 401, message: 'Already confirmed' })
 
   await user.update({ isVerified: true })
-  res.json('Success confirmed')
+  res.sendStatus(200)
 })
 
 // TODO need to destroy previous JWT Token ------------------
@@ -67,30 +69,30 @@ exports.changePassword = wrapper(async (req, res, next) => {
   const successCompare = await bcrypt.compare(req.body.password, user.password)
   if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
 
-  const hashedPassword = await bcrypt.hash(req.body.password_new, saltRounds)
+  const hashedPassword = await bcrypt.hash(req.body.passwordNew, saltRounds)
   await user.update({ password: hashedPassword })
-  res.json('Successfully changed!')
+  res.sendStatus(200)
 })
 
 // TODO need to destroy previous JWT Token №2 ------------------
 exports.resetPassword = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.query.token, 'forgot_password')
+  const result = await verifyJwt(req.query.token, secretForgotPass)
   const user = await User.findOne({ where: { email: result.email } })
 
   const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
   await user.update({ password: hashedPassword })
-  res.json('Success reset!')
+  res.sendStatus(200)
 })
 
 exports.askForgotPassword = wrapper(async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.body.email } })
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
-  const token = await jwt.sign({ email: req.body.email }, 'forgot_password', { expiresIn: '5m' })
+  const token = await jwt.sign({ email: req.body.email }, secretForgotPass, { expiresIn: '5m' })
 
   const mailBody = {
-    token: token,
+    token,
     email: req.body.email,
-    route: url + '/api/users/reset-password',
+    route: '/api/users/reset-password',
     subject: 'Forgot Password'
   }
   sendMail(mailBody)
