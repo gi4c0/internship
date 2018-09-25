@@ -13,8 +13,6 @@ const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
 
-
-
 exports.register = async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
@@ -52,7 +50,8 @@ exports.login = wrapper(async (req, res, next) => {
 })
 
 exports.confirm = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.query.token, secretRegistration)
+  const result = await verifyJwt(req.query.token, secretRegistration).catch((err) => next({ httpCode: 400, message: err.message }))
+
   const user = await User.findOne({ where: { email: result.email } })
   if (user.isVerified) return next({ httpCode: 401, message: 'Already confirmed' })
 
