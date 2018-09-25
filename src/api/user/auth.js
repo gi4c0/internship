@@ -1,36 +1,17 @@
-const Joi = require('joi')
+
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const util = require('util')
 
-const jwtPromiseVer = util.promisify(jwt.verify)
+const verifyJwt = util.promisify(jwt.verify)
 const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
+
 const secret = 'secret'
 const saltRounds = 10
-
-exports.registerSchema = Joi.object().keys({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(8).required(),
-  firstName: Joi.string(),
-  lastName: Joi.string(),
-  middleName: Joi.string(),
-  title: Joi.string(),
-  image: Joi.string(),
-  ssn: Joi.string(),
-  phone: Joi.string(),
-  cell: Joi.string(),
-  countryCode: Joi.string(),
-  city: Joi.string(),
-  website: Joi.string(),
-  address: Joi.string(),
-  state: Joi.string()
-})
-exports.loginSchema = Joi.object().keys({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(8).required()
-})
+const config = require('config')
+const url = config.get('url')
 
 exports.register = async (req, res, next) => {
   try {
@@ -38,7 +19,13 @@ exports.register = async (req, res, next) => {
     await User.create({ ...req.body, password: hashedPassword })
 
     const token = await jwt.sign({ email: req.body.email }, 'registration')
-    sendMail(token, req.body.email, 'http://localhost:3000/api/users/confirm-token', 'Email confirmation')
+    const mailBody = {
+      token: token,
+      email: req.body.email,
+      route: url + '/api/users/confirm-token',
+      subject: 'Email confirmation'
+    }
+    sendMail(mailBody)
     res.sendStatus(201)
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
@@ -63,7 +50,7 @@ exports.login = wrapper(async (req, res, next) => {
 })
 
 exports.confirm = wrapper(async (req, res, next) => {
-  const result = await jwtPromiseVer(req.query.token, 'registration')
+  const result = await verifyJwt(req.query.token, 'registration')
   const user = await User.findOne({ where: { email: result.email } })
   if (user.isVerified) { return next({ httpCode: 401, message: 'Already confirmed' }) }
 
@@ -73,7 +60,7 @@ exports.confirm = wrapper(async (req, res, next) => {
 
 // TODO need to destroy previous JWT Token ------------------
 exports.changePassword = wrapper(async (req, res, next) => {
-  const result = await jwtPromiseVer(req.body.token, secret)
+  const result = await verifyJwt(req.body.token, secret)
   const user = await User.findOne({ where: { email: result.email } })
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
 
@@ -87,9 +74,8 @@ exports.changePassword = wrapper(async (req, res, next) => {
 
 // TODO need to destroy previous JWT Token №2 ------------------
 exports.resetPassword = wrapper(async (req, res, next) => {
-  const result = await jwtPromiseVer(req.query.token, 'forgot_password')
+  const result = await verifyJwt(req.query.token, 'forgot_password')
   const user = await User.findOne({ where: { email: result.email } })
-  if (!user) return next({ httpCode: 404, message: 'No such user found' })
 
   const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
   await user.update({ password: hashedPassword })
@@ -99,9 +85,14 @@ exports.resetPassword = wrapper(async (req, res, next) => {
 exports.askForgotPassword = wrapper(async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.body.email } })
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
-
   const token = await jwt.sign({ email: req.body.email }, 'forgot_password', { expiresIn: '5m' })
-  sendMail(token, req.body.email, 'http://localhost:3000/api/users/reset-password', 'Forgot Password')
 
+  const mailBody = {
+    token: token,
+    email: req.body.email,
+    route: url + '/api/users/reset-password',
+    subject: 'Forgot Password'
+  }
+  sendMail(mailBody)
   res.json('Check your email')
 })

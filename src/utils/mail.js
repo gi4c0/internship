@@ -12,12 +12,11 @@ const transporter = nodemailer.createTransport({
 // setup email data with unicode symbols
 const mailOptions = {
   from: 'Alex_T <o.tanasov@do-it.co>' // sender address
-  // subject: 'Confirm your email' // Subject line
 }
 
 // send mail
-exports.sendMail = (token, email, route, subject) => {
-  const html = `<b>Hi ${email}</b><br><a href = ${route}?token=${token}>Ссыыыылка`
-  transporter.sendMail({ ...mailOptions, html: html, to: email, subject })
+exports.sendMail = (mailBody) => {
+  const html = `<b>Hi ${mailBody.email}</b><br><a href = ${mailBody.route}?token=${mailBody.token}>Ссыыыылка`
+  transporter.sendMail({ ...mailOptions, html, to: mailBody.email, subject: mailBody.subject })
     .catch(console.log)
 }
