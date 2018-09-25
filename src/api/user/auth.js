@@ -13,6 +13,16 @@ const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
 
+const deleteUnnecessary = (user) => {
+  let tmp = user.dataValues
+  delete tmp.id
+  delete tmp.createdAt
+  delete tmp.updatedAt
+  delete tmp.isVerified
+  delete tmp.password
+  return tmp
+}
+
 exports.register = async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
@@ -96,4 +106,16 @@ exports.askForgotPassword = wrapper(async (req, res, next) => {
   }
   sendMail(mailBody)
   res.json('Check your email')
+})
+
+exports.getCurrentUser = wrapper(async (req, res, next) => {
+  const result = await verifyJwt(req.query.token, secret)
+  let user = await User.findOne({ where: { email: result.email } })
+  res.json(deleteUnnecessary((user)))
+})
+exports.changeCurrentUser = wrapper(async (req, res, next) => {
+  const result = await verifyJwt(req.query.token, secret)
+  let user = await User.findOne({ where: { email: result.email } })
+  await user.update(req.body)
+  res.sendStatus(200)
 })
