@@ -71,8 +71,8 @@ exports.confirm = wrapper(async (req, res, next) => {
 
 // TODO need to destroy previous JWT Token ------------------
 exports.changePassword = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.body.token, secret)
-  const user = await User.findOne({ where: { email: result.email } })
+  const user = await User.findOne({ where: { email: req.result.email } })
+
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
 
   const successCompare = await bcrypt.compare(req.body.password, user.password)
@@ -110,12 +110,12 @@ exports.askForgotPassword = wrapper(async (req, res, next) => {
 
 exports.getCurrentUser = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secret)
-  let user = await User.findOne({ where: { email: result.email } })
+  const user = await User.findOne({ where: { email: result.email } })
+
   res.json(deleteUnnecessary((user)))
 })
 exports.changeCurrentUser = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secret)
-  let user = await User.findOne({ where: { email: result.email } })
-  await user.update(req.body)
+  await User.update(req.body, { where: { email: result.email } })
   res.sendStatus(200)
 })
