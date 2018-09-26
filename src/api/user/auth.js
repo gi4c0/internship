@@ -97,8 +97,8 @@ exports.askForgotPassword = wrapper(async (req, res, next) => {
   res.json('Check your email')
 })
 exports.getCurrentUser = wrapper(async (req, res, next) => {
-  const user = await User.findOne({ where: { email: req.user.email } })
-  res.json(_.omit(user.dataValues, ['id', 'createdAt', 'updatedAt', 'isVerified', 'password']))
+  const user = await User.findOne({ where: { email: req.user.email }, attributes: { exclude: ['id', 'createdAt', 'updatedAt', 'isVerified', 'password'] } })
+  res.json(user.dataValues)
 })
 exports.updateProfile = wrapper(async (req, res, next) => {
   await User.update(req.body, { where: { email: req.user.email } })
