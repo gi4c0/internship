@@ -15,7 +15,7 @@ router.get('/profile', userMiddleware, auth.getCurrentUser) // -----------------
 router.post('/register', validate(controller.registerSchema), auth.register)
 router.post('/login', validate(controller.loginSchema), auth.login)
 router.post('/forgot-password', validate(controller.askForgotPasswordSchema), auth.askForgotPassword)
-router.post('/upload', userMiddleware, upload.single('avatar'), auth.imgUpload) // -------------------
+router.post('/upload', userMiddleware, upload.single('avatar'), validate(controller.imageSchema), auth.imgUpload) // -------------------
 
 router.patch('/change-password', userMiddleware, validate(controller.changePasswordSchema), auth.changePassword) // ---------------------------
 router.patch('/reset-password', validate(controller.resetPasswordSchema), auth.resetPassword)

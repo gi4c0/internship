@@ -48,3 +48,6 @@ exports.changeUserSchema = Joi.object().keys({
   address: Joi.string(),
   state: Joi.string()
 })
+exports.imageSchema = Joi.object().keys({
+  avatar: Joi.string().uri({ scheme: ['http', 'https'] }).regex(/\.(jpg|png|jpeg)$/).required()
+})

@@ -106,6 +106,10 @@ exports.updateProfile = wrapper(async (req, res, next) => {
   res.sendStatus(200)
 })
 exports.imgUpload = wrapper(async (req, res, next, err) => {
+  if (req.body.avatar) {
+    res.sendStatus(200)
+    return User.update({ image: req.body.avatar }, { where: { email: req.user.email } })
+  }
   const user = await User.findOne({ where: { email: req.user.email } })
   if (user.image) deleteFile('public' + user.image.replace(url, '')).catch(next)
   await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.user.email } })
