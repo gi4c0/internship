@@ -46,9 +46,8 @@ exports.login = wrapper(async (req, res, next) => {
   const successCompare = await bcrypt.compare(req.body.password, user.password)
   if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
 
-  const token = await jwt.sign({ email: user.email }, secret, { expiresIn: '1d' })
-
   if (!user.isVerified) return next({ httpCode: 401, message: 'Please confirm your email' })
+  const token = await jwt.sign({ email: user.email }, secret, { expiresIn: '1d' })
   res.json({ token })
 })
 exports.confirm = wrapper(async (req, res, next) => {
