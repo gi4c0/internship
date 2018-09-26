@@ -6,7 +6,7 @@ exports.userFactory = sequelize => sequelize.define('User', {
   firstName: { type: Sequelize.STRING },
   lastName: { type: Sequelize.STRING },
   middleName: { type: Sequelize.STRING },
-  role: { type: Sequelize.STRING },
+  role: { type: Sequelize.STRING, validate: { isIn: [['agent', 'recruiter', 'admin']] }, allowNull: false },
   title: { type: Sequelize.STRING },
   image: { type: Sequelize.STRING },
   ssn: { type: Sequelize.STRING },
