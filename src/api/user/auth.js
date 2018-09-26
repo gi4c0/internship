@@ -4,6 +4,7 @@ const util = require('util')
 
 const config = require('config')
 const secret = config.get('secret')
+const url = config.get('url')
 const secretForgotPass = config.get('secretForgotPass')
 const secretRegistration = config.get('secretRegistration')
 const saltRounds = 10
@@ -117,5 +118,10 @@ exports.getCurrentUser = wrapper(async (req, res, next) => {
 exports.changeCurrentUser = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secret)
   await User.update(req.body, { where: { email: result.email } })
+  res.sendStatus(200)
+})
+
+exports.imgUpload = wrapper(async (req, res, next, err) => {
+  await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.result.email } })
   res.sendStatus(200)
 })
