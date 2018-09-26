@@ -7,7 +7,7 @@ exports.registerSchema = Joi.object().keys({
   lastName: Joi.string(),
   middleName: Joi.string(),
   title: Joi.string(),
-  image: Joi.string(),
+  image: Joi.string().uri({ scheme: ['http', 'https', '.jpg'] }),
   ssn: Joi.string(),
   phone: Joi.string(),
   cell: Joi.string(),

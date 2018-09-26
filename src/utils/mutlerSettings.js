@@ -10,3 +10,7 @@ exports.storage = (multer) => {
     }
   })
 }
+exports.filterImage = (req, file, cb) => {
+  if (!file.mimetype.match(/image/g)) return cb(new Error('Only image allowed'))
+  cb(null, true)
+}

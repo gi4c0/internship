@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const util = require('util')
-const _ = require('lodash')
+// const _ = require('lodash')
 const fs = require('fs')
 
 const config = require('config')
@@ -12,6 +12,7 @@ const secretRegistration = config.get('secretRegistration')
 const saltRounds = 10
 
 const verifyJwt = util.promisify(jwt.verify)
+const deleteFile = util.promisify(fs.unlink)
 const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
@@ -106,7 +107,7 @@ exports.updateProfile = wrapper(async (req, res, next) => {
 })
 exports.imgUpload = wrapper(async (req, res, next, err) => {
   const user = await User.findOne({ where: { email: req.user.email } })
-  if (user.image) fs.unlink('public' + user.image.replace(url, ''))
+  if (user.image) deleteFile('public' + user.image.replace(url, '')).catch(next)
   await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.user.email } })
   res.sendStatus(200)
 })
