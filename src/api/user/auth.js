@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const util = require('util')
 const _ = require('lodash')
+const fs = require('fs')
 
 const config = require('config')
 const secret = config.get('secret')
@@ -96,9 +97,7 @@ exports.askForgotPassword = wrapper(async (req, res, next) => {
   res.json('Check your email')
 })
 exports.getCurrentUser = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.query.token, secret)
-  const user = await User.findOne({ where: { email: result.email } })
-
+  const user = await User.findOne({ where: { email: req.user.email } })
   res.json(_.omit(user.dataValues, ['id', 'createdAt', 'updatedAt', 'isVerified', 'password']))
 })
 exports.updateProfile = wrapper(async (req, res, next) => {
@@ -106,6 +105,8 @@ exports.updateProfile = wrapper(async (req, res, next) => {
   res.sendStatus(200)
 })
 exports.imgUpload = wrapper(async (req, res, next, err) => {
+  const user = await User.findOne({ where: { email: req.user.email } })
+  if (user.image) fs.unlink('public' + user.image.replace(url, ''))
   await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.user.email } })
   res.sendStatus(200)
 })

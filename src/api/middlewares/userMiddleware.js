@@ -9,7 +9,8 @@ exports.userMiddleware = async (req, res, next) => {
   req.user = await verifyJwt(req.body.token, secret).catch(next)
   next()
 }
-exports.userMiddlewareFile = async (req, res, next) => {
+
+exports.userMiddlewareGet = async (req, res, next) => {
   req.user = await verifyJwt(req.query.token, secret).catch(next)
   next()
 }
