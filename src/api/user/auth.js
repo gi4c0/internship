@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const util = require('util')
+const _ = require('lodash')
 
 const config = require('config')
 const secret = config.get('secret')
@@ -13,16 +14,6 @@ const verifyJwt = util.promisify(jwt.verify)
 const { User } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
 const { sendMail } = require('../../utils/mail')
-
-const deleteUnnecessary = (user) => {
-  let tmp = user.dataValues
-  delete tmp.id
-  delete tmp.createdAt
-  delete tmp.updatedAt
-  delete tmp.isVerified
-  delete tmp.password
-  return tmp
-}
 
 exports.register = async (req, res, next) => {
   try {
@@ -45,7 +36,6 @@ exports.register = async (req, res, next) => {
     next(err)
   }
 }
-
 // TODO Change "secret" on RSA key(see jsonwebtoken doc)
 exports.login = wrapper(async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.body.email } })
@@ -59,7 +49,6 @@ exports.login = wrapper(async (req, res, next) => {
   if (!user.isVerified) return next({ httpCode: 401, message: 'Please confirm your email' })
   res.json({ token })
 })
-
 exports.confirm = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secretRegistration).catch((err) => next({ httpCode: 400, message: err.message }))
 
@@ -72,7 +61,7 @@ exports.confirm = wrapper(async (req, res, next) => {
 
 // TODO need to destroy previous JWT Token ------------------
 exports.changePassword = wrapper(async (req, res, next) => {
-  const user = await User.findOne({ where: { email: req.result.email } })
+  const user = await User.findOne({ where: { email: req.user.email } })
 
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
 
@@ -83,7 +72,6 @@ exports.changePassword = wrapper(async (req, res, next) => {
   await user.update({ password: hashedPassword })
   res.sendStatus(200)
 })
-
 // TODO need to destroy previous JWT Token №2 ------------------
 exports.resetPassword = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secretForgotPass)
@@ -93,7 +81,6 @@ exports.resetPassword = wrapper(async (req, res, next) => {
   await user.update({ password: hashedPassword })
   res.sendStatus(200)
 })
-
 exports.askForgotPassword = wrapper(async (req, res, next) => {
   const user = await User.findOne({ where: { email: req.body.email } })
   if (!user) return next({ httpCode: 404, message: 'No such user found' })
@@ -108,20 +95,17 @@ exports.askForgotPassword = wrapper(async (req, res, next) => {
   sendMail(mailBody)
   res.json('Check your email')
 })
-
 exports.getCurrentUser = wrapper(async (req, res, next) => {
   const result = await verifyJwt(req.query.token, secret)
   const user = await User.findOne({ where: { email: result.email } })
 
-  res.json(deleteUnnecessary((user)))
+  res.json(_.omit(user.dataValues, ['id', 'createdAt', 'updatedAt', 'isVerified', 'password']))
 })
-exports.changeCurrentUser = wrapper(async (req, res, next) => {
-  const result = await verifyJwt(req.query.token, secret)
-  await User.update(req.body, { where: { email: result.email } })
+exports.updateProfile = wrapper(async (req, res, next) => {
+  await User.update(req.body, { where: { email: req.user.email } })
   res.sendStatus(200)
 })
-
 exports.imgUpload = wrapper(async (req, res, next, err) => {
-  await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.result.email } })
+  await User.update({ image: url + req.file.path.replace(/public/g, '') }, { where: { email: req.user.email } })
   res.sendStatus(200)
 })

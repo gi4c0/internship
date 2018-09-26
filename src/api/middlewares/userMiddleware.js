@@ -6,10 +6,10 @@ const config = require('config')
 const secret = config.get('secret')
 
 exports.userMiddleware = async (req, res, next) => {
-  req.result = await verifyJwt(req.body.token, secret).catch((err) => next(err))
+  req.user = await verifyJwt(req.body.token, secret).catch(next)
   next()
 }
 exports.userMiddlewareFile = async (req, res, next) => {
-  req.result = await verifyJwt(req.query.token, secret).catch((err) => next(err))
+  req.user = await verifyJwt(req.query.token, secret).catch(next)
   next()
 }

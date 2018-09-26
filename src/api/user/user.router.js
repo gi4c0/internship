@@ -1,15 +1,13 @@
 const router = require('express').Router()
-const config = require('config')
-const storage = config.get('storage')
+const { storage } = require('../../utils/mutlerSettings')
 
 const { validate } = require('../middlewares/validator.js')
 const { userMiddleware, userMiddlewareFile } = require('../middlewares/userMiddleware.js')
 const controller = require('./validationSchemas.js')
 const auth = require('./auth')
 
-var multer = require('multer')
-
-var upload = multer({ storage: storage(multer) })
+const multer = require('multer')
+const upload = multer({ storage: storage(multer) })
 
 router.get('/confirm-token', auth.confirm)
 router.get('/profile', auth.getCurrentUser)
@@ -21,6 +19,6 @@ router.post('/upload', userMiddlewareFile, upload.single('avatar'), auth.imgUplo
 
 router.patch('/change-password', userMiddleware, validate(controller.changePasswordSchema), auth.changePassword)
 router.patch('/reset-password', validate(controller.resetPasswordSchema), auth.resetPassword)
-router.patch('/profile', validate(controller.changeUserSchema), auth.changeCurrentUser)
+router.patch('/profile', userMiddleware, validate(controller.changeUserSchema), auth.updateProfile)
 
 module.exports = router
