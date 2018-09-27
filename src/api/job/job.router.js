@@ -6,5 +6,6 @@ const { userMiddleware } = require('../middlewares/userMiddleware.js')
 const jobs = require('./jobs')
 
 router.get('/categories', jobs.getCategories)
+router.get('/naics', jobs.getNaics)
 
 module.exports = router
