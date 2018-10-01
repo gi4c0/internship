@@ -22,4 +22,14 @@ exports.getJob = wrapper(async (req, res, next) => {
   const result = await Job.findAll(query)
   return res.json(result)
 })
-
+exports.changeJob = wrapper(async (req, res, next) => {
+  let query = {}
+  if (!req.query.id) return next({ httpCode: 400, message: 'id is required' })
+  if (['admin', 'agent'].includes(req.user.role)) {
+    query = { where: { id: req.query.id, recruiterId: req.user.id } }
+  } else {
+    query = { where: { id: req.query.id } }
+  }
+  await Job.update(req.body, query)
+  res.sendStatus(200)
+})

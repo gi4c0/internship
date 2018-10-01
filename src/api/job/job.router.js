@@ -10,5 +10,5 @@ router.get('/naics', userMiddleware, jobs.getNaics)
 router.get('/', userMiddleware, jobs.getJob)
 
 router.put('/', validate(controller.addJobSchema), userMiddleware, jobs.addJob)
-
+router.patch('/', validate(controller.changeJobSchema), userMiddleware, jobs.changeJob)
 module.exports = router
