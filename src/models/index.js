@@ -16,5 +16,7 @@ const db = {
   JobCategories: JobCategories(sequelize),
   Naics: Naics(sequelize)
 }
-
+db.Job.belongsTo(db.JobCategories, { foreignKey: 'jobCategoryId' })
+db.Job.belongsTo(db.User, { foreignKey: 'recruiterId' })
+db.Job.belongsTo(db.Naics, { foreignKey: 'naicsId' })
 module.exports = db
