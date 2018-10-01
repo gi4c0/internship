@@ -10,3 +10,10 @@ exports.userMiddleware = async (req, res, next) => {
   req.user = await verifyJwt(req.get('Authorization'), secret).catch(next)
   next()
 }
+
+exports.getRole = async (req, res, next) => {
+  if (req.user.role === 'recruiter') {
+    req.role = true
+  } else req.role = false
+  next()
+}

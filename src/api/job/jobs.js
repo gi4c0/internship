@@ -5,30 +5,39 @@ const { wrapper } = require('../../utils/wrapper.js')
 
 exports.getCategories = wrapper(async (req, res, next) => {
   const result = await JobCategories.all()
-  res.json(result)
+  res.json({ jobCategories: result })
 })
 exports.getNaics = wrapper(async (req, res, next) => {
   const result = await Naics.all()
-  res.json(result)
+  res.json({ naics: result })
 })
 exports.addJob = wrapper(async (req, res, next) => {
-  await Job.create({ ...req.body, recruiterId: req.user.id })
-  res.sendStatus(200)
+  if (req.role) {
+    await Job.create({ ...req.body, recruiterId: req.user.id })
+    res.sendStatus(201)
+  } else { next({ httpCode: 400, message: 'You are not recrutier' }) }
 })
 exports.getJob = wrapper(async (req, res, next) => {
   let query = {}
-  if (['admin', 'agent'].includes(req.user.role)) {
-  } else { query = { where: { recruiterId: req.user.id } } }
+  if (req.role) {
+    query = { where: { recruiterId: req.user.id } }
+  }
   const result = await Job.findAll(query)
   return res.json(result)
 })
+exports.getJobById = wrapper(async (req, res, next) => {
+  let query = { where: { id: req.params.jobid } }
+  if (req.role) {
+    query = { where: { recruiterId: req.user.id, id: req.params.jobid } }
+  }
+  const result = await Job.findOne(query)
+  res.json(result)
+})
 exports.changeJob = wrapper(async (req, res, next) => {
-  let query = {}
-  if (!req.query.id) return next({ httpCode: 400, message: 'id is required' })
-  if (['admin', 'agent'].includes(req.user.role)) {
-    query = { where: { id: req.query.id, recruiterId: req.user.id } }
-  } else {
-    query = { where: { id: req.query.id } }
+  let query = { where: { id: req.params.jobid } }
+  if (!req.params.jobid) return next({ httpCode: 400, message: 'id is required' })
+  if (req.role) {
+    query = { where: { id: req.params.jobid, recruiterId: req.user.id } }
   }
   await Job.update(req.body, query)
   res.sendStatus(200)
