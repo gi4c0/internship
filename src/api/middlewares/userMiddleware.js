@@ -8,8 +8,12 @@ const secret = config.get('secret')
 exports.userMiddleware = async (req, res, next) => {
   if (!req.get('Authorization')) return next({ httpCode: 401, message: 'Jwt must be provided' })
   req.user = await verifyJwt(req.get('Authorization'), secret).catch(next)
-  if (req.user.roleRecrut === 'recruiter') {
-    req.roleRecrut = true
-  } else req.roleRecrut = false
+  next()
+}
+exports.checkRole = (req, res, next) => {
+  let role = 'recruiter'
+  if (role && (req.user.role !== role)) {
+    return next({ httpCode: 401, message: `This is only for ${role}` })
+  }
   next()
 }

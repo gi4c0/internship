@@ -47,7 +47,7 @@ exports.login = wrapper(async (req, res, next) => {
   if (!successCompare) return next({ httpCode: 401, message: 'Password doesn’t match' })
 
   if (!user.isVerified) return next({ httpCode: 401, message: 'Please confirm your email' })
-  const token = await jwt.sign({ id: user.id, email: user.email, role: user.roleRecrut }, secret, { expiresIn: '1d' })
+  const token = await jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, { expiresIn: '1d' })
   res.json({ token })
 })
 exports.confirm = wrapper(async (req, res, next) => {

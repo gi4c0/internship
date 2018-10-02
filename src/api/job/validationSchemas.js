@@ -17,9 +17,9 @@ exports.addJobSchema = Joi.object().keys({
   country: Joi.string(),
   postalCode: Joi.string(),
   location: Joi.string(),
-  jobCategoryId: Joi.string(),
+  jobCategoryId: Joi.number(),
   hireBudget: Joi.string(),
-  bountyAmount: Joi.string()
+  bountyAmount: Joi.number()
 })
 exports.changeJobSchema = Joi.object().keys({
   title: Joi.string(),
