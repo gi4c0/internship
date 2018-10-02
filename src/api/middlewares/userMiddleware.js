@@ -10,8 +10,7 @@ exports.userMiddleware = async (req, res, next) => {
   req.user = await verifyJwt(req.get('Authorization'), secret).catch(next)
   next()
 }
-exports.checkRole = (req, res, next) => {
-  let role = 'recruiter'
+exports.checkRole = (role = '') => (req, res, next) => {
   if (role && (req.user.role !== role)) {
     return next({ httpCode: 401, message: `This is only for ${role}` })
   }

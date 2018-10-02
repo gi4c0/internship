@@ -10,6 +10,6 @@ router.get('/naics', userMiddleware, jobs.getNaics)
 router.get('/', userMiddleware, jobs.getJob)
 router.get('/:jobid', userMiddleware, jobs.getJobById)
 
-router.post('/', validate(controller.addJobSchema), userMiddleware, checkRole, jobs.addJob)
-router.patch('/:jobid', validate(controller.changeJobSchema), userMiddleware, checkRole, jobs.updateJob)
+router.post('/', validate(controller.addJobSchema), userMiddleware, checkRole('recruiter'), jobs.addJob)
+router.patch('/:jobid', validate(controller.changeJobSchema), userMiddleware, checkRole('recruiter'), jobs.updateJob)
 module.exports = router
