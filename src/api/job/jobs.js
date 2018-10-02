@@ -32,7 +32,7 @@ exports.getJobById = wrapper(async (req, res, next) => {
   res.json({ job: result })
 })
 exports.updateJob = wrapper(async (req, res, next) => {
-  let query = { where: { id: req.params.jobid, recruiterId: req.user.id } }
+  const query = { where: { id: req.params.jobid, recruiterId: req.user.id } }
   await Job.update(req.body, query)
   res.sendStatus(200)
 })
