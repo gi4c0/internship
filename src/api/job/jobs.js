@@ -21,7 +21,7 @@ exports.getJob = wrapper(async (req, res, next) => {
     query = { where: { recruiterId: req.user.id } }
   }
   const result = await Job.findAll(query)
-  return res.json({ job: result })
+  res.json({ job: result })
 })
 exports.getJobById = wrapper(async (req, res, next) => {
   let query = { where: { id: req.params.jobid } }
