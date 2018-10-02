@@ -8,3 +8,11 @@ exports.validate = schema => (req, res, next) => {
   }
   next()
 }
+exports.validateQuery = schema => (req, res, next) => {
+  const result = Joi.validate(req.query, schema)
+  if (result.error) {
+    const messages = result.error.details.map(d => d.message).join('. ')
+    throw { httpCode: 400, message: messages }
+  }
+  next()
+}

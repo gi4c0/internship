@@ -20,8 +20,8 @@ exports.getJob = wrapper(async (req, res, next) => {
   if (req.user.role === 'recruiter') {
     query = { where: { recruiterId: req.user.id } }
   }
-  if (req.query.limit) { query.limit = req.query.limit } else { query.limit = 50 }
-  if (req.query.offset) { query.offset = req.query.offset } else { query.offset = 0 }
+  query.limit = req.query.limit || 50
+  query.offset = req.query.offset || 0
   const result = await Job.findAll(query)
   res.json({ count: query.limit, job: result })
 })

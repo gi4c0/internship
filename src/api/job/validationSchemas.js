@@ -42,3 +42,7 @@ exports.changeJobSchema = Joi.object().keys({
   hireBudget: Joi.string(),
   bountyAmount: Joi.string()
 })
+exports.getJobSchema = Joi.object().keys({
+  limit: Joi.number(),
+  offset: Joi.number()
+})
