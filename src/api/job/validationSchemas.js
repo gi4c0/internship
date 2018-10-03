@@ -50,6 +50,6 @@ exports.getJobSchema = Joi.object().keys({
   query: {
     limit: Joi.number().min(1).max(50),
     offset: Joi.number(),
-    title: Joi.string()
+    title: Joi.any()
   }
 }).unknown()

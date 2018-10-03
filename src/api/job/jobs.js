@@ -1,8 +1,6 @@
-const { JobCategories } = require('../../models/index.js')
-const { Naics } = require('../../models/index.js')
-const { Job } = require('../../models/index.js')
+const { JobCategories, Naics, Job, Sequelize } = require('../../models/index.js')
 const { wrapper } = require('../../utils/wrapper.js')
-const Sequelize = require('sequelize')
+
 exports.getCategories = wrapper(async (req, res, next) => {
   const result = await JobCategories.all()
   res.json({ jobCategories: result })
@@ -24,7 +22,7 @@ exports.getJobs = wrapper(async (req, res, next) => {
     query.where.title = { [Sequelize.Op.like]: `%${req.query.title}%` }
   }
   const result = await Job.findAndCountAll(query)
-  res.json({ count: result.count, jobs: result })
+  res.json({ count: result.count, jobs: result.rows })
 })
 exports.getJobById = wrapper(async (req, res, next) => {
   let query = { where: { id: req.params.jobid } }
