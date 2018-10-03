@@ -15,13 +15,13 @@ exports.addJob = wrapper(async (req, res, next) => {
   await Job.create({ ...req.body, recruiterId: req.user.id })
   res.sendStatus(201)
 })
-exports.getJob = wrapper(async (req, res, next) => {
-  let query = {}
+exports.getJobs = wrapper(async (req, res, next) => {
+  let query = { limit: req.query.limit || 50, offset: req.query.offset || 0 }
   if (req.user.role === 'recruiter') {
     query = { where: { recruiterId: req.user.id } }
   }
   const result = await Job.findAll(query)
-  res.json({ job: result })
+  res.json({ count: query.limit, jobs: result })
 })
 exports.getJobById = wrapper(async (req, res, next) => {
   let query = { where: { id: req.params.jobid } }
@@ -36,3 +36,4 @@ exports.updateJob = wrapper(async (req, res, next) => {
   await Job.update(req.body, query)
   res.sendStatus(200)
 })
+// TODO Exclude db queries
