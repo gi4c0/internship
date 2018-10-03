@@ -49,6 +49,7 @@ exports.changeJobSchema = Joi.object().keys({
 exports.getJobSchema = Joi.object().keys({
   query: {
     limit: Joi.number().min(1).max(50),
-    offset: Joi.number()
+    offset: Joi.number(),
+    title: Joi.any()
   }
 }).unknown()
