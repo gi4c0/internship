@@ -18,7 +18,7 @@ exports.addJob = wrapper(async (req, res, next) => {
 exports.getJobs = wrapper(async (req, res, next) => {
   let query = { limit: req.query.limit || 50, offset: req.query.offset || 0 }
   if (req.user.role === 'recruiter') {
-    query = { where: { recruiterId: req.user.id } }
+    query.where = { recruiterId: req.user.id, title: { $like: '%' + (req.query.title || undefined) + '%' } }
   }
   const result = await Job.findAll(query)
   res.json({ count: query.limit, jobs: result })
