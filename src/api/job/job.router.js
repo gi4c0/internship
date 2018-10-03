@@ -1,15 +1,15 @@
 const router = require('express').Router()
 
 const { validate, validateQuery } = require('../middlewares/validator.js')
-const { userMiddleware } = require('../middlewares/userMiddleware.js')
-const controller = require('./validationSchemas.js')
+const { checkRole } = require('../middlewares/userMiddleware.js')
+const schema = require('./validationSchemas.js')
 const jobs = require('./jobs')
 
-router.get('/categories', userMiddleware(), jobs.getCategories)
-router.get('/naics', userMiddleware(), jobs.getNaics)
-router.get('/',validateQuery(controller.getJobSchema), userMiddleware(), jobs.getJob)
-router.get('/:jobid', userMiddleware(), jobs.getJobById)
+router.get('/categories', checkRole(), jobs.getCategories)
+router.get('/naics', checkRole(), jobs.getNaics)
+router.get('/',validateQuery(schema.getJobSchema), checkRole(), jobs.getJobs)
+router.get('/:jobid', checkRole(), jobs.getJobById)
 
-router.post('/', validate(controller.addJobSchema), userMiddleware('recruiter'), jobs.addJob)
-router.patch('/:jobid', validate(controller.changeJobSchema), userMiddleware('recruiter'), jobs.updateJob)
+router.post('/', validate(schema.addJobSchema), checkRole('recruiter'), jobs.addJob)
+router.patch('/:jobid', validate(schema.changeJobSchema), checkRole('recruiter'), jobs.updateJob)
 module.exports = router
